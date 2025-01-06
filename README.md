@@ -1,11 +1,19 @@
 # PPTVbaAssist
 
 ## 機能
-PPTのVBA開発を支援
+PPTのVBA開発を支援するツールです。  
+VBAコードの効率的な入出力や管理を可能にします。
 
-## PPTVbasAssist.ppta
-VBAソースコードの入出力を支援
-src フォルダとやり取りする
+## インストール方法
+1. **PPTVbaAssist.ppta** をダウンロードします。  
+2. PPTの「アドイン」機能を使用して、PPTVbaAssist.pptaをアドインとしてインストールしてください。
 
-## exportfiles.ps1
-VBAソースコードを1ファイルにまとめる
+## 主なコンポーネント
+
+### PPTVbaAssist.ppta
+- VBAソースコードの入出力を簡略化します。  
+- `src`フォルダを介してソースコードとのやり取りを行います。
+
+### exportfiles.ps1
+- 複数のVBAソースコードを1つのファイルにまとめるためのPowerShellスクリプトです。  
+- VBAコードの整理やバックアップに便利です。
