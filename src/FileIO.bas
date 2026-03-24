@@ -1,4 +1,4 @@
-Attribute VB_Name = "FileIO111"
+Attribute VB_Name = "FileIO"
 Option Explicit
 
 Public ribbon As IRibbonUI
@@ -191,8 +191,51 @@ Sub ImportCodeFromFile()
     MsgBox "すべてのモジュールとフォームがインポートされました。", vbInformation
 End Sub
 
-
-
+' 現在のプレゼンテーションをアドイン(.ppam)として同じフォルダに保存する
+Sub SaveAsAddin(Optional control As IRibbonControl)
+    Dim currentPres As Presentation
+    Dim currentPath As String
+    Dim addinPath As String
+    Dim baseName As String
+    Dim extPos As Integer
+    Dim localPath As String
+    
+    Set currentPres = ActivePresentation
+    
+    ' プレゼンテーションが保存されていない場合は警告
+    If currentPres.Path = "" Then
+        MsgBox "プレゼンテーションが保存されていません。先に保存してください。", vbExclamation
+        Exit Sub
+    End If
+    
+    currentPath = currentPres.FullName
+    
+    ' OneDriveパスの場合はローカルパスに変換（既存の関数を使用）
+    localPath = OneDriveUrlToLocalPath(currentPath)
+    
+    ' 拡張子を取り除いてベース名を取得
+    extPos = InStrRev(localPath, ".")
+    If extPos > 0 Then
+        baseName = Left(localPath, extPos - 1)
+    Else
+        baseName = localPath
+    End If
+    
+    ' ppamの保存パスを作成
+    addinPath = baseName & ".ppam"
+    
+    ' ★修正箇所: ppSaveAsAddIn を ppSaveAsOpenXMLAddin に変更
+    On Error Resume Next
+    currentPres.SaveAs addinPath, ppSaveAsOpenXMLAddin
+    
+    If Err.Number = 0 Then
+        MsgBox "アドインとして保存しました。" & vbCrLf & addinPath, vbInformation
+    Else
+        MsgBox "保存に失敗しました。" & vbCrLf & "エラー: " & Err.Description, vbCritical
+        Err.Clear
+    End If
+    On Error GoTo 0
+End Sub
 
 ' Onedriveフォルダ取得関数
 ' https://kuroihako.com/vba/onedriveurltolocalpath/

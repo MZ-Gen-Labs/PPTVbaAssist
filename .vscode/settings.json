@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "*.cls": "vb",
+        "*.bas": "vb",
+        "*.frm": "vb"
+    },
+    "[vb]": {
+        "files.encoding": "shiftjis",
+        "files.eol": "\r\n",
+        "files.autoGuessEncoding": false
+    }
+}
