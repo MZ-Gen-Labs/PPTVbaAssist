@@ -1,4 +1,4 @@
-Attribute VB_Name = "FileIO"
+Attribute VB_Name = "FileIO11"
 Option Explicit
 
 Public ribbon As IRibbonUI
@@ -131,7 +131,7 @@ Sub ExportCodeToFile_(Optional deleteUnusedFiles As Boolean = True, Optional out
     Set exportedFiles = Nothing
 End Sub
 
-Sub ImportCodeToFile()
+Sub ImportCodeFromFile()
     Dim folderPath As String
     Dim fileName As String
     Dim vbComp As VBIDE.VBComponent
