@@ -1,0 +1,21 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*" # "v1.0.0" などのタグがプッシュされたときに実行されます
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PPTVbaAssist.ppam
+          generate_release_notes: true

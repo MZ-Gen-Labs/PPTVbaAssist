@@ -1,0 +1,13 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="RibbonOnLoad">
+  <ribbon>
+    <tabs>
+      <tab id="CustomTab" label="VBA補助">
+        <group id="GroupNote" label="コード入出力">
+          <button id="Btn04" label="コード → ファイル" size="large" imageMso="ExportTextFile" onAction="ExportCodeToFile" />
+          <button id="Btn05" label="コード ← ファイル" size="large" imageMso="ImportTextFile" onAction="ImportCodeFromFile" />
+          <button id="Btn06" label="アドイン保存" size="large" imageMso="SaveAsPowerPointAddIn" onAction="SaveAsAddin" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
