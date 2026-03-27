@@ -305,3 +305,90 @@ Const OneDriveCommercialUrlPattern As String = "*my.sharepoint.com*" '法人向けOn
 
 End Function
 
+' --- メニュー(customUI14.xml)をエクスポートする処理 ---
+Sub ExportMenuToFile(Optional control As IRibbonControl)
+    Dim currentPresentationPath As String
+    Dim folderPath As String, tempZipPath As String
+    Dim fso As Object, shellApp As Object, zipFolder As Object, uiFile As Object
+    
+    currentPresentationPath = ActivePresentation.FullName
+    If currentPresentationPath = "" Then
+        MsgBox "プレゼンテーションが保存されていません。", vbExclamation
+        Exit Sub
+    End If
+    
+    folderPath = OneDriveUrlToLocalPath(ActivePresentation.Path) & "\src\"
+    If Dir(folderPath, vbDirectory) = "" Then MkDir folderPath
+    
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    tempZipPath = folderPath & "temp_for_export.zip"
+    
+    ' ロック回避のためコピーしてZIPとして扱う
+    fso.CopyFile currentPresentationPath, tempZipPath, True
+    
+    Set shellApp = CreateObject("Shell.Application")
+    Set zipFolder = shellApp.Namespace(tempZipPath)
+    Set uiFile = zipFolder.ParseName("customUI\customUI14.xml")
+    
+    If Not uiFile Is Nothing Then
+        shellApp.Namespace(folderPath).CopyHere uiFile, 4
+        If fso.FileExists(folderPath & "menu.xml") Then fso.DeleteFile folderPath & "menu.xml"
+        Name folderPath & "customUI14.xml" As folderPath & "menu.xml"
+        MsgBox "メニューを src\menu.xml に抽出しました。", vbInformation
+    Else
+        MsgBox "カスタムUIファイルが見つかりません。", vbExclamation
+    End If
+    
+    If fso.FileExists(tempZipPath) Then fso.DeleteFile tempZipPath
+End Sub
+
+' --- メニュー(menu.xml)をインポートする処理 ---
+Sub ImportMenuFromFile(Optional control As IRibbonControl)
+    Dim currentPresentationPath As String
+    Dim folderPath As String
+    Dim menuXmlPath As String
+    Dim psScriptPath As String
+    Dim psCommand As String
+    Dim shellApp As Object
+    
+    currentPresentationPath = ActivePresentation.FullName
+    If currentPresentationPath = "" Then
+        MsgBox "プレゼンテーションが保存されていません。", vbExclamation
+        Exit Sub
+    End If
+    
+    ' パスの取得
+    folderPath = OneDriveUrlToLocalPath(ActivePresentation.Path) & "\src\"
+    menuXmlPath = folderPath & "menu.xml"
+    psScriptPath = folderPath & "UpdateMenu.ps1"
+    
+    ' 必要なファイルが存在するか確認
+    If Dir(menuXmlPath) = "" Then
+        MsgBox "インポートする src\menu.xml が見つかりません。", vbCritical
+        Exit Sub
+    End If
+    If Dir(psScriptPath) = "" Then
+        MsgBox "実行用スクリプト src\UpdateMenu.ps1 が見つかりません。", vbCritical
+        Exit Sub
+    End If
+    
+    ' ユーザーへの確認
+    If MsgBox("メニューを更新するためにファイルを一度閉じます。よろしいですか？" & vbCrLf & _
+              "※保存していない変更は失われます。事前に保存してください。", vbYesNo + vbQuestion) = vbNo Then
+        Exit Sub
+    End If
+    
+    ' PowerPointに変更を保存
+    ActivePresentation.Save
+    
+    ' PowerShellを非同期(バックグラウンド)で起動するコマンドを構築
+    ' -WindowStyle Hidden で画面を隠し、-ExecutionPolicy Bypass で実行許可を一時的に通す
+    psCommand = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File """ & psScriptPath & """ -pptFilePath """ & currentPresentationPath & """ -menuXmlPath """ & menuXmlPath & """"
+    
+    Set shellApp = CreateObject("WScript.Shell")
+    ' 非同期で実行 (0 = 非表示, False = 完了を待たない)
+    shellApp.Run psCommand, 0, False
+    
+    ' 即座に現在のプレゼンテーションを閉じる（これによりファイルロックが解除される）
+    ActivePresentation.Close
+End Sub

@@ -7,6 +7,10 @@
           <button id="Btn05" label="コード ← ファイル" size="large" imageMso="ImportTextFile" onAction="ImportCodeFromFile" />
           <button id="Btn06" label="アドイン保存" size="large" imageMso="SaveAsPowerPointAddIn" onAction="SaveAsAddin" />
         </group>
+        <group id="GroupMenu" label="メニュー管理">
+          <button id="BtnMenuExport" label="メニューを抽出" size="large" imageMso="Export" onAction="ExportMenuToFile" />
+          <button id="BtnMenuImport" label="メニューを読込" size="large" imageMso="Import" onAction="ImportMenuFromFile" />
+        </group>
       </tab>
     </tabs>
   </ribbon>
