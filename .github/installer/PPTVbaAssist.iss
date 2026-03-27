@@ -17,11 +17,12 @@ PrivilegesRequired=lowest
 CloseApplications=yes
 
 [Files]
-; 2つ上の階層（プロジェクトルート）にあるファイルを指定
+; 2つ上の階層（プロジェクトルート）にあるファイルを指定 (改行せずに1行で記述)
 Source: "..\..\PPTVbaAssist.ppam"; DestDir: "{userappdata}\Microsoft\AddIns"; Flags: ignoreversion
 Source: "..\..\src\UpdateMenu.ps1"; DestDir: "{userappdata}\Microsoft\AddIns"; Flags: ignoreversion
 
 [Registry]
+; (改行せずに1行で記述)
 Root: HKCU; Subkey: "SOFTWARE\Microsoft\Office\16.0\PowerPoint\AddIns\PPTVbaAssist"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "SOFTWARE\Microsoft\Office\16.0\PowerPoint\AddIns\PPTVbaAssist"; ValueType: string; ValueName: "Path"; ValueData: "{userappdata}\Microsoft\AddIns\PPTVbaAssist.ppam"
 Root: HKCU; Subkey: "SOFTWARE\Microsoft\Office\16.0\PowerPoint\AddIns\PPTVbaAssist"; ValueType: dword; ValueName: "AutoLoad"; ValueData: "$ffffffff"

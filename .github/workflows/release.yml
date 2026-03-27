@@ -24,8 +24,8 @@ jobs:
 
       - name: Compile Inno Setup Installer
         run: |
-          # .iss ファイルのパスを .github\installer 配下に変更
-          "C:\Program Files (x86)\Inno Setup 6\iscc.exe" "/DMyAppVersion=$env:VERSION" ".github\installer\PPTVbaAssist.iss"
+          # .iss ファイルのパスを .github\installer 配下に変更 (先頭に & を追加)
+          & "C:\Program Files (x86)\Inno Setup 6\iscc.exe" "/DMyAppVersion=$env:VERSION" ".github\installer\PPTVbaAssist.iss"
 
       - name: Release
         uses: softprops/action-gh-release@v2

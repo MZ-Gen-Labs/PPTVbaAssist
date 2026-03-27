@@ -310,6 +310,7 @@ Const OneDriveCommercialUrlPattern As String = "*my.sharepoint.com*" '法人向けOn
     End If
 
 End Function
+
 ' --- メニュー(customUI14.xml)をエクスポートする処理 ---
 Sub ExportMenuToFile(Optional control As IRibbonControl)
     Dim currentPresentationPath As String
@@ -397,7 +398,15 @@ Sub ImportMenuFromFile(Optional control As IRibbonControl)
     ' パスの取得
     folderPath = OneDriveUrlToLocalPath(ActivePresentation.Path) & "\src\"
     menuXmlPath = folderPath & "menu.xml"
+    
+    ' 実行用スクリプトのパスを決定
+    ' 1. まず現在のプロジェクトの src フォルダを探す（開発・個別配置用）
     psScriptPath = folderPath & "UpdateMenu.ps1"
+    
+    ' 2. 見つからなければシステムのアドインフォルダを探す（本番・インストール環境用）
+    If Dir(psScriptPath) = "" Then
+        psScriptPath = Environ("APPDATA") & "\Microsoft\AddIns\UpdateMenu.ps1"
+    End If
     
     ' 必要なファイルが存在するか確認
     If Dir(menuXmlPath) = "" Then
@@ -405,7 +414,8 @@ Sub ImportMenuFromFile(Optional control As IRibbonControl)
         Exit Sub
     End If
     If Dir(psScriptPath) = "" Then
-        MsgBox "実行用スクリプト src\UpdateMenu.ps1 が見つかりません。", vbCritical
+        MsgBox "実行用スクリプト UpdateMenu.ps1 が見つかりません。" & vbCrLf & _
+               "アドインが正しくインストールされているか確認してください。", vbCritical
         Exit Sub
     End If
     
