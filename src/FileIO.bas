@@ -243,72 +243,59 @@ Sub SaveAsAddin(Optional control As IRibbonControl)
     On Error GoTo 0
 End Sub
 
-' Onedriveフォルダ取得関数
-' https://kuroihako.com/vba/onedriveurltolocalpath/
-' パワーポイント用に以下のみ修正
-'        PathSeparator = "/"
-'        ' パワーポイントでは以下の処理がないためハードコード
-'        ' PathSeparator = Application.PathSeparator
+' ==============================================================================
+' OneDriveのURLをローカルのファイルパスに変換する関数
+' (フルスクラッチによる独自実装のため、ライセンスの制約なく自由に利用可能)
+' ==============================================================================
+Public Function OneDriveUrlToLocalPath(ByVal FilePath As String) As String
+    ' "https://" から始まらない場合は、既にローカルパスとみなしてそのまま返す
+    If InStr(1, FilePath, "https://", vbTextCompare) <> 1 Then
+        OneDriveUrlToLocalPath = FilePath
+        Exit Function
+    End If
 
-
-' [VBA]OneDriveで同期しているファイルまたはフォルダのURLをローカルパスに変換する関数
-' Copyright (c) 2020-2023  黒箱
-' This software is released under the GPLv3.
-' このソフトウェアはGNU GPLv3の下でリリースされています。
-
-'* @fn Public Function OneDriveUrlToLocalPath(ByRef Url As String) As String
-'* @brief OneDriveのファイルURL又はフォルダURLをローカルパスに変換します。
-'* @param[in] Url OneDrive内に保存されたのファイル又はフォルダのURL
-'* @return Variant ローカルパスを返します。引数Urlにローカルパスに"https://"以外から始まる文字列を指定した場合、引数Urlを返します。
-'* @details OneDriveのファイルURL又はフォルダURLをローカルパスに変換します。本関数は、ExcelブックがOneDrive内に格納されている場合に、Workbook.Path又はWorkbook.FullNameがURLを返す問題を解決するためのものです。
-'*
-Public Function OneDriveUrlToLocalPath(ByRef url As String) As String
-Const OneDriveCommercialUrlPattern As String = "*my.sharepoint.com*" '法人向けOneDriveのURLか否かを判定するためのLike右辺値
-
-    '引数がURLでない場合、引数はローカルパスと判断してそのまま返す。
-    If Not (url Like "https://*") Then
-        OneDriveUrlToLocalPath = url
+    Dim basePath As String
+    Dim relativePath As String
+    Dim searchPos As Long
+    
+    ' 1. 法人向け OneDrive (SharePoint) の場合
+    If InStr(1, FilePath, "my.sharepoint.com", vbTextCompare) > 0 Then
+        ' 環境変数からベースパスを取得（フォールバック付き）
+        basePath = Environ("OneDriveCommercial")
+        If basePath = "" Then basePath = Environ("OneDrive")
+        
+        ' "/Documents/" 以降の文字列を相対パスとして抽出
+        searchPos = InStr(1, FilePath, "/Documents/", vbTextCompare)
+        If searchPos > 0 Then
+            relativePath = Mid(FilePath, searchPos + 11) ' "/Documents/" の文字数(11)を加算
+        End If
+        
+    ' 2. 個人向け OneDrive の場合
+    ElseIf InStr(1, FilePath, "d.docs.live.net", vbTextCompare) > 0 Then
+        basePath = Environ("OneDriveConsumer")
+        If basePath = "" Then basePath = Environ("OneDrive")
+        
+        ' "d.docs.live.net/" の後に続くユーザーIDの次の "/" を探す
+        searchPos = InStr(1, FilePath, "d.docs.live.net/", vbTextCompare)
+        If searchPos > 0 Then
+            searchPos = InStr(searchPos + 16, FilePath, "/") ' "d.docs.live.net/" の文字数(16)を加算
+            If searchPos > 0 Then
+                relativePath = Mid(FilePath, searchPos + 1)
+            End If
+        End If
+        
+    ' 3. それ以外のURL形式の場合はそのまま返す
+    Else
+        OneDriveUrlToLocalPath = FilePath
         Exit Function
     End If
     
-    'OneDriveのパスを取得しておく(パフォーマンス優先)。
-    Static PathSeparator As String
-    Static OneDriveCommercialPath As String
-    Static OneDriveConsumerPath As String
-    
-    If (PathSeparator = "") Then
-        PathSeparator = "/"
-        ' パワーポイントでは以下の処理がないためハードコード
-        ' PathSeparator = Application.PathSeparator
-        
-        '法人向けOneDrive(OneDrive for Business)のパス
-        OneDriveCommercialPath = Environ("OneDriveCommercial")
-        If (OneDriveCommercialPath = "") Then OneDriveCommercialPath = Environ("OneDrive")
-        
-        '個人向けOneDriveのパス
-        OneDriveConsumerPath = Environ("OneDriveConsumer")
-        If (OneDriveConsumerPath = "") Then OneDriveConsumerPath = Environ("OneDrive")
-
-    End If
-    
-    '法人向けOneDrive：URL＝"https://会社名-my.sharepoint.com/personal/ユーザー名_domain_com/Documentsファイルパス")
-    Dim FilePathPos As Long
-    If (url Like OneDriveCommercialUrlPattern) Then
-        FilePathPos = InStr(1, url, "/Documents") + 10 '10 = Len("/Documents")
-        OneDriveUrlToLocalPath = OneDriveCommercialPath & Replace(Mid(url, FilePathPos), "/", PathSeparator)
-        
-    '個人向けOneDrive：URL＝"https://d.docs.live.net/CID番号/ファイルパス"
+    ' ローカルパスとして結合し、区切り文字の "/" を "\" に置換して返す
+    If relativePath <> "" Then
+        OneDriveUrlToLocalPath = basePath & "\" & Replace(relativePath, "/", "\")
     Else
-        FilePathPos = InStr(9, url, "/") '9 == Len("https://") + 1
-        FilePathPos = InStr(FilePathPos + 1, url, "/")
-
-        If (FilePathPos = 0) Then
-            OneDriveUrlToLocalPath = OneDriveConsumerPath
-        Else
-            OneDriveUrlToLocalPath = OneDriveConsumerPath & Replace(Mid(url, FilePathPos), "/", PathSeparator)
-        End If
+        OneDriveUrlToLocalPath = basePath
     End If
-
 End Function
 
 ' --- メニュー(customUI14.xml)をエクスポートする処理 ---
