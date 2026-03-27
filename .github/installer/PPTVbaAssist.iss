@@ -18,8 +18,8 @@ CloseApplications=yes
 
 [Files]
 ; 2つ上の階層（プロジェクトルート）にあるファイルを指定 (改行せずに1行で記述)
-Source: "..\..\PPTVbaAssist.ppam"; DestDir: "{userappdata}\Microsoft\AddIns"; Flags: ignoreversion
-Source: "..\..\src\UpdateMenu.ps1"; DestDir: "{userappdata}\Microsoft\AddIns"; Flags: ignoreversion
+Source: "..\..\PPTVbaAssist.ppam"; DestDir: "{userappdata}\Microsoft\AddIns"; Flags: ignoreversion overwritereadonly
+Source: "..\..\src\UpdateMenu.ps1"; DestDir: "{userappdata}\Microsoft\AddIns"; Flags: ignoreversion overwritereadonly
 
 [Registry]
 ; (改行せずに1行で記述)
