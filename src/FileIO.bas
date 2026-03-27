@@ -1,6 +1,12 @@
 Attribute VB_Name = "FileIO"
 Option Explicit
 
+#If VBA7 Then
+    Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+#Else
+    Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+#End If
+
 Public ribbon As IRibbonUI
 
 Sub InitializeVariables()
@@ -304,12 +310,13 @@ Const OneDriveCommercialUrlPattern As String = "*my.sharepoint.com*" '法人向けOn
     End If
 
 End Function
-
 ' --- メニュー(customUI14.xml)をエクスポートする処理 ---
 Sub ExportMenuToFile(Optional control As IRibbonControl)
     Dim currentPresentationPath As String
     Dim folderPath As String, tempZipPath As String
-    Dim fso As Object, shellApp As Object, zipFolder As Object, uiFile As Object
+    Dim fso As Object, shellApp As Object, zipFolder As Object
+    Dim customUIFolder As Object, uiFile As Object
+    Dim vZipPath As Variant, vFolderPath As Variant
     
     currentPresentationPath = ActivePresentation.FullName
     If currentPresentationPath = "" Then
@@ -326,19 +333,49 @@ Sub ExportMenuToFile(Optional control As IRibbonControl)
     ' ロック回避のためコピーしてZIPとして扱う
     fso.CopyFile currentPresentationPath, tempZipPath, True
     
-    Set shellApp = CreateObject("Shell.Application")
-    Set zipFolder = shellApp.Namespace(tempZipPath)
-    Set uiFile = zipFolder.ParseName("customUI\customUI14.xml")
+    ' NamespaceメソッドにはVariant型を渡す必要があるための処理
+    vZipPath = tempZipPath
+    vFolderPath = folderPath
     
-    If Not uiFile Is Nothing Then
-        shellApp.Namespace(folderPath).CopyHere uiFile, 4
-        If fso.FileExists(folderPath & "menu.xml") Then fso.DeleteFile folderPath & "menu.xml"
-        Name folderPath & "customUI14.xml" As folderPath & "menu.xml"
-        MsgBox "メニューを src\menu.xml に抽出しました。", vbInformation
-    Else
-        MsgBox "カスタムUIファイルが見つかりません。", vbExclamation
+    Set shellApp = CreateObject("Shell.Application")
+    Set zipFolder = shellApp.Namespace(vZipPath)
+    
+    ' zipFolderの取得に失敗した場合のエラーハンドリング
+    If zipFolder Is Nothing Then
+        MsgBox "一時ZIPファイルの読み込みに失敗しました。", vbCritical
+        If fso.FileExists(tempZipPath) Then fso.DeleteFile tempZipPath
+        Exit Sub
     End If
     
+    ' "customUI" フォルダを先に探し、その中から "customUI14.xml" を探す
+    Set customUIFolder = zipFolder.ParseName("customUI")
+    If Not customUIFolder Is Nothing Then
+        Set uiFile = customUIFolder.GetFolder.ParseName("customUI14.xml")
+        
+        If Not uiFile Is Nothing Then
+            ' srcフォルダに抽出 (4 = 進行ダイアログを非表示)
+            shellApp.Namespace(vFolderPath).CopyHere uiFile, 4
+            
+            ' コピーが完了するまで少し待機（非同期処理対策）
+            Sleep 1000 ' 1000ミリ秒(1秒)待機
+            
+            ' ファイル名を menu.xml に変更
+            If fso.FileExists(folderPath & "menu.xml") Then fso.DeleteFile folderPath & "menu.xml"
+            
+            If fso.FileExists(folderPath & "customUI14.xml") Then
+                Name folderPath & "customUI14.xml" As folderPath & "menu.xml"
+                MsgBox "メニューを src\menu.xml に抽出しました。", vbInformation
+            Else
+                MsgBox "ファイルの抽出に失敗しました。", vbExclamation
+            End If
+        Else
+            MsgBox "ZIP内に customUI14.xml が見つかりません。", vbExclamation
+        End If
+    Else
+        MsgBox "ZIP内に customUI フォルダが見つかりません。", vbExclamation
+    End If
+    
+    ' 一時ファイルを削除
     If fso.FileExists(tempZipPath) Then fso.DeleteFile tempZipPath
 End Sub
 
