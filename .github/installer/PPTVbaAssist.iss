@@ -7,7 +7,12 @@
 AppName=PPTVbaAssist
 AppVersion={#MyAppVersion}
 AppPublisher=Your Name or Organization
-CreateAppDir=no
+
+; ★修正ポイント: アンインストーラーの保存先をユーザーのLocalAppDataに設定し、エラーを回避
+DefaultDirName={localappdata}\PPTVbaAssist
+; フォルダ選択画面を非表示にする（サイレントインストール風にするため）
+DisableDirPage=yes
+
 ; 出力先ディレクトリを2つ上の階層の「Output」フォルダに指定
 OutputDir=..\..\Output
 OutputBaseFilename=PPTVbaAssist_Setup_{#MyAppVersion}
@@ -48,7 +53,7 @@ begin
     // PowerPointが起動している場合
     if WbemObjectSet.Count > 0 then
     begin
-      MsgBox('PowerPointが起動しています。' + #13#10 + 'インストールを続行するには、PowerPointを完全に終了してから「OK」を押してください。', mbError, MB_OK);
+      MsgBox('PowerPointが起動しています。' + #13#10 + 'インストールを続行するには、PowerPointを完全に終了してから再度インストーラーを実行してください。', mbError, MB_OK);
       // インストールを中断する
       Result := False;
     end;
