@@ -4,9 +4,12 @@
 #endif
 
 [Setup]
+AppId=PPTVbaAssist
 AppName=PPTVbaAssist
 AppVersion={#MyAppVersion}
 AppPublisher=Your Name or Organization
+
+UninstallDisplayName=PPTVbaAssist
 
 ; ★修正ポイント: アンインストーラーの保存先をユーザーのLocalAppDataに設定し、エラーを回避
 DefaultDirName={localappdata}\PPTVbaAssist
