@@ -27,13 +27,15 @@ while (-not $fileCopied -and $retryCount -lt $maxRetries) {
 
 if (-not $fileCopied) {
     Write-Host "Error: Could not unlock the PowerPoint file." -ForegroundColor Red
+    Write-Host "`nPress Enter to exit..."
+    Read-Host
     return
 }
 
 try {
     # ZIPファイルの更新処理 (.NETの機能を使用)
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    Add-Type -AssemblyName System.IO.Compression  # <--- ★この1行を追加しました
+    Add-Type -AssemblyName System.IO.Compression
 
     $zipArchive = [System.IO.Compression.ZipFile]::Open($tempZipPath, [System.IO.Compression.ZipArchiveMode]::Update)
 
@@ -58,6 +60,16 @@ try {
     # 再度PowerPointでファイルを開く
     Invoke-Item $pptFilePath
     
+    # ★正常終了時は10秒カウントダウンしてから自動で閉じる
+    Write-Host "`nThis window will close automatically in 10 seconds..."
+    for ($i = 10; $i -gt 0; $i--) {
+        Write-Host "$i " -NoNewline
+        Start-Sleep -Seconds 1
+    }
+    
 } catch {
     Write-Host "An unexpected error occurred: $_" -ForegroundColor Red
+    # ★エラー時はエンターキーが押されるまで画面をキープする
+    Write-Host "`nPress Enter to exit..."
+    Read-Host
 }

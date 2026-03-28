@@ -427,10 +427,9 @@ Sub ImportMenuFromFile(Optional control As IRibbonControl)
     ' PowerPointに変更を保存
     ActivePresentation.Save
     
-    ' PowerShellを非同期(バックグラウンド)で起動するコマンドを構築
-    ' -WindowStyle Hidden で画面を隠し、-ExecutionPolicy Bypass で実行許可を一時的に通す
-    ' エラー確認のため、ウィンドウを表示し、処理完了後も閉じないように -NoExit を追加
-    psCommand = "powershell.exe -NoExit -ExecutionPolicy Bypass -File """ & psScriptPath & """ -pptFilePath """ & currentPresentationPath & """ -menuXmlPath """ & menuXmlPath & """"
+    ' PowerShellを通常のウィンドウで起動するコマンドを構築
+    ' ★ -NoExit や -WindowStyle Hidden を外し、PowerShell側で閉じるタイミングを制御させます
+    psCommand = "powershell.exe -ExecutionPolicy Bypass -File """ & psScriptPath & """ -pptFilePath """ & currentPresentationPath & """ -menuXmlPath """ & menuXmlPath & """"
     
     Set shellApp = CreateObject("WScript.Shell")
     ' ウィンドウを表示して実行 (1 = 通常表示, False = 完了を待たない)
