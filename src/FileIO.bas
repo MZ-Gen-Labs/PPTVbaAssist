@@ -449,6 +449,12 @@ Private Function GetTargetAddinName() As String
     Dim extPos As Integer
     Dim currentName As String
     
+    ' ★追加: アクティブなプレゼンテーションがない場合は空文字を返す
+    If Application.Presentations.Count = 0 Then
+        GetTargetAddinName = ""
+        Exit Function
+    End If
+    
     currentName = ActivePresentation.Name
     extPos = InStrRev(currentName, ".")
     If extPos > 0 Then
@@ -464,8 +470,12 @@ Sub GetAddinState(control As IRibbonControl, ByRef returnedVal As Variant)
     Dim targetAddIn As AddIn
     Dim addInName As String
     
-    addInName = GetTargetAddinName()
     returnedVal = False ' デフォルトはオフ
+    
+    addInName = GetTargetAddinName()
+    
+    ' ★追加: アドイン名が取得できなかった場合（ファイルが閉じている時など）は処理を抜ける
+    If addInName = "" Then Exit Sub
     
     On Error Resume Next
     Set targetAddIn = Application.AddIns(addInName)
