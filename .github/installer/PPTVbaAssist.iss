@@ -7,7 +7,7 @@
 AppId=PPTVbaAssist
 AppName=PPTVbaAssist
 AppVersion={#MyAppVersion}
-AppPublisher=Your Name or Organization
+AppPublisher=MZ-Gen-Labs
 
 UninstallDisplayName=PPTVbaAssist
 
