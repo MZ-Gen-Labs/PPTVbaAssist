@@ -392,11 +392,12 @@ Sub ImportMenuFromFile(Optional control As IRibbonControl)
     
     ' PowerShellを非同期(バックグラウンド)で起動するコマンドを構築
     ' -WindowStyle Hidden で画面を隠し、-ExecutionPolicy Bypass で実行許可を一時的に通す
-    psCommand = "powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -File """ & psScriptPath & """ -pptFilePath """ & currentPresentationPath & """ -menuXmlPath """ & menuXmlPath & """"
+    ' エラー確認のため、ウィンドウを表示し、処理完了後も閉じないように -NoExit を追加
+    psCommand = "powershell.exe -NoExit -ExecutionPolicy Bypass -File """ & psScriptPath & """ -pptFilePath """ & currentPresentationPath & """ -menuXmlPath """ & menuXmlPath & """"
     
     Set shellApp = CreateObject("WScript.Shell")
-    ' 非同期で実行 (0 = 非表示, False = 完了を待たない)
-    shellApp.Run psCommand, 0, False
+    ' ウィンドウを表示して実行 (1 = 通常表示, False = 完了を待たない)
+    shellApp.Run psCommand, 1, False
     
     ' 即座に現在のプレゼンテーションを閉じる（これによりファイルロックが解除される）
     ActivePresentation.Close
