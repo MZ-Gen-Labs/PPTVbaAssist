@@ -206,6 +206,11 @@ Sub SaveAsAddin(Optional control As IRibbonControl)
     Dim extPos As Integer
     Dim localPath As String
     
+    ' 追加: アドイン状態管理用の変数
+    Dim targetAddIn As AddIn
+    Dim addInFileName As String
+    Dim wasLoaded As Boolean
+    
     Set currentPres = ActivePresentation
     
     ' プレゼンテーションが保存されていない場合は警告
@@ -218,7 +223,7 @@ Sub SaveAsAddin(Optional control As IRibbonControl)
     
     ' OneDriveパスの場合はローカルパスに変換（既存の関数を使用）
     localPath = OneDriveUrlToLocalPath(currentPath)
-    
+
     ' 拡張子を取り除いてベース名を取得
     extPos = InStrRev(localPath, ".")
     If extPos > 0 Then
@@ -230,12 +235,37 @@ Sub SaveAsAddin(Optional control As IRibbonControl)
     ' ppamの保存パスを作成
     addinPath = baseName & ".ppam"
     
-    ' ★修正箇所: ppSaveAsAddIn を ppSaveAsOpenXMLAddin に変更
+    ' ===== 追加箇所 ここから =====
+    ' パスからファイル名のみを抽出
+    addInFileName = Mid(addinPath, InStrRev(addinPath, "\") + 1)
+    wasLoaded = False
+    
+    ' 同名のアドインが読み込まれている場合は一時的に解除（アンロード）してロックを解放する
+    On Error Resume Next
+    Set targetAddIn = Application.AddIns(addInFileName)
+    If Not targetAddIn Is Nothing Then
+        If targetAddIn.Loaded Then
+            wasLoaded = True
+            targetAddIn.Loaded = msoFalse ' ロック解除
+        End If
+    End If
+    On Error GoTo 0
+    ' ===== 追加箇所 ここまで =====
+    
+    ' アドインとして保存
     On Error Resume Next
     currentPres.SaveAs addinPath, ppSaveAsOpenXMLAddin
     
     If Err.Number = 0 Then
         MsgBox "アドインとして保存しました。" & vbCrLf & addinPath, vbInformation
+        
+        ' ===== 追加箇所 ここから =====
+        ' 保存が成功し、もともとロードされていた場合は再度ロードする
+        If wasLoaded And Not targetAddIn Is Nothing Then
+            targetAddIn.Loaded = msoTrue
+        End If
+        ' ===== 追加箇所 ここまで =====
+        
     Else
         MsgBox "保存に失敗しました。" & vbCrLf & "エラー: " & Err.Description, vbCritical
         Err.Clear
