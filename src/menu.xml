@@ -2,22 +2,27 @@
   <ribbon>
     <tabs>
       <tab id="CustomTab" label="VBA補助">
-        <group id="GroupNote" label="コード入出力">
+        <group id="GroupNote" label="コード管理">
           <button id="Btn04" label="コード → ファイル" size="large" imageMso="ExportTextFile" onAction="ExportCodeToFile" />
           <button id="Btn05" label="コード ← ファイル" size="large" imageMso="ImportTextFile" onAction="ImportCodeFromFile" />
-          <button id="Btn06" label="アドイン保存" size="large" imageMso="SaveAsPowerPointAddIn" onAction="SaveAsAddin" />
         </group>
+        
         <group id="GroupMenu" label="メニュー管理">
           <button id="BtnMenuExport" label="メニューを抽出" size="large" imageMso="Export" onAction="ExportMenuToFile" />
           <button id="BtnMenuImport" label="メニューを読込" size="large" imageMso="Import" onAction="ImportMenuFromFile" />
         </group>
+        
+        <group id="GroupBuild" label="ビルド・発行">
+          <button id="Btn06" label="アドイン保存" size="large" imageMso="SaveAsPowerPointAddIn" onAction="SaveAsAddin" />
+        </group>
+
         <group id="GroupDev" label="開発支援">
           <checkBox id="ChkAddinState" 
-                    label="インストール済みアドインを有効化" 
+                    label="インストール済みアドイン有効" 
                     getPressed="GetAddinState" 
                     onAction="ToggleAddinState" />
         </group>
-        </tab>
+      </tab>
     </tabs>
   </ribbon>
 </customUI>

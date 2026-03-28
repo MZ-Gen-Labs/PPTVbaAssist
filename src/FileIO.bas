@@ -216,16 +216,21 @@ Sub ImportCodeFromFile()
     MsgBox "すべてのモジュールとフォームがインポートされました。", vbInformation
 End Sub
 
-' 現在のプレゼンテーションをアドイン(.ppam)として同じフォルダに保存する
+' 現在のプレゼンテーションをアドイン(.ppam)として dist フォルダに保存する
 Sub SaveAsAddin(Optional control As IRibbonControl)
     Dim currentPres As Presentation
     Dim currentPath As String
     Dim addinPath As String
     Dim baseName As String
     Dim extPos As Integer
+    Dim slashPos As Integer
     Dim localPath As String
     
-    ' 追加: アドイン状態管理用の変数
+    Dim parentFolder As String
+    Dim fileNameOnly As String
+    Dim distFolder As String
+    
+    ' アドイン状態管理用の変数（ロック回避用）
     Dim targetAddIn As AddIn
     Dim addInFileName As String
     Dim wasLoaded As Boolean
@@ -239,27 +244,42 @@ Sub SaveAsAddin(Optional control As IRibbonControl)
     End If
     
     currentPath = currentPres.FullName
-    
-    ' OneDriveパスの場合はローカルパスに変換（既存の関数を使用）
     localPath = OneDriveUrlToLocalPath(currentPath)
-
-    ' 拡張子を取り除いてベース名を取得
-    extPos = InStrRev(localPath, ".")
-    If extPos > 0 Then
-        baseName = Left(localPath, extPos - 1)
+    
+    ' 親フォルダパスとファイル名を分離する
+    slashPos = InStrRev(localPath, "\")
+    If slashPos > 0 Then
+        parentFolder = Left(localPath, slashPos) ' 例: C:\Project\
+        fileNameOnly = Mid(localPath, slashPos + 1) ' 例: PPTVbaAssist.pptm
     Else
-        baseName = localPath
+        parentFolder = localPath & "\"
+        fileNameOnly = currentPres.Name
     End If
     
-    ' ppamの保存パスを作成
-    addinPath = baseName & ".ppam"
+    ' 拡張子を取り除いてベース名を取得
+    extPos = InStrRev(fileNameOnly, ".")
+    If extPos > 0 Then
+        baseName = Left(fileNameOnly, extPos - 1)
+    Else
+        baseName = fileNameOnly
+    End If
     
-    ' ===== 追加箇所 ここから =====
-    ' パスからファイル名のみを抽出
-    addInFileName = Mid(addinPath, InStrRev(addinPath, "\") + 1)
-    wasLoaded = False
+    ' distフォルダのパスを作成
+    distFolder = parentFolder & "dist"
     
+    ' distフォルダが存在しない場合は自動作成
+    If Dir(distFolder, vbDirectory) = "" Then
+        MkDir distFolder
+    End If
+    
+    ' 最終的なppamの保存パスを作成
+    addinPath = distFolder & "\" & baseName & ".ppam"
+    addInFileName = baseName & ".ppam"
+    
+    ' ===================================
     ' 同名のアドインが読み込まれている場合は一時的に解除（アンロード）してロックを解放する
+    ' ===================================
+    wasLoaded = False
     On Error Resume Next
     Set targetAddIn = Application.AddIns(addInFileName)
     If Not targetAddIn Is Nothing Then
@@ -269,22 +289,20 @@ Sub SaveAsAddin(Optional control As IRibbonControl)
         End If
     End If
     On Error GoTo 0
-    ' ===== 追加箇所 ここまで =====
     
+    ' ===================================
     ' アドインとして保存
+    ' ===================================
     On Error Resume Next
     currentPres.SaveAs addinPath, ppSaveAsOpenXMLAddin
     
     If Err.Number = 0 Then
-        MsgBox "アドインとして保存しました。" & vbCrLf & addinPath, vbInformation
+        MsgBox "アドインを dist フォルダに保存しました。" & vbCrLf & addinPath, vbInformation
         
-        ' ===== 追加箇所 ここから =====
         ' 保存が成功し、もともとロードされていた場合は再度ロードする
         If wasLoaded And Not targetAddIn Is Nothing Then
             targetAddIn.Loaded = msoTrue
         End If
-        ' ===== 追加箇所 ここまで =====
-        
     Else
         MsgBox "保存に失敗しました。" & vbCrLf & "エラー: " & Err.Description, vbCritical
         Err.Clear
