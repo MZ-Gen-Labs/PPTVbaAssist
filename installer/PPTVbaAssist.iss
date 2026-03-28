@@ -17,7 +17,7 @@ DefaultDirName={localappdata}\PPTVbaAssist
 DisableDirPage=yes
 
 ; 出力先ディレクトリを2つ上の階層の「Output」フォルダに指定
-OutputDir=..\..\Output
+OutputDir=..\Output
 OutputBaseFilename=PPTVbaAssist_Setup_{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
