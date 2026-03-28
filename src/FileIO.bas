@@ -170,18 +170,37 @@ Sub ImportCodeFromFile()
         moduleName = Left(fileName, Len(fileName) - 4)
 
         If fileExtension = ".bas" Or fileExtension = ".cls" Or fileExtension = ".frm" Then
+            
+            ' ① 変数の初期化（前回のループのオブジェクトが残るのを防ぐ）
+            Set vbComp = Nothing
+            
             On Error Resume Next
             Set vbComp = Application.VBE.ActiveVBProject.VBComponents(moduleName)
+            On Error GoTo 0
+
+            ' ② 既存モジュールがある場合の処理
             If Not vbComp Is Nothing Then
+                On Error Resume Next
+                ' 万が一、前回の退避モジュールが残っていれば先に削除
+                Application.VBE.ActiveVBProject.VBComponents.Remove Application.VBE.ActiveVBProject.VBComponents(moduleName & "_Old")
+                
+                ' ★ここがポイント：削除前にリネームして、名前の重複（末尾1問題）を避ける
+                vbComp.Name = moduleName & "_Old"
+                
+                ' リネームしたモジュールを削除（実行中のものはゾンビとして残る）
                 Application.VBE.ActiveVBProject.VBComponents.Remove vbComp
+                
+                If Err.Number <> 0 Then
+                    Debug.Print "モジュールの削除に失敗しました: " & moduleName
+                    Err.Clear
+                End If
+                On Error GoTo 0
             End If
 
-            If Err.Number <> 0 Then
-                Debug.Print "モジュールの削除に失敗しました: " & moduleName
-                Err.Clear
-            End If
-
+            ' ③ 新しいファイルのインポート
+            On Error Resume Next
             Application.VBE.ActiveVBProject.VBComponents.Import folderPath & fileName
+            
             If Err.Number = 0 Then
               Debug.Print "モジュール/フォームがインポートされました: " & fileName
             Else
