@@ -11,7 +11,13 @@
           <button id="BtnMenuExport" label="メニューを抽出" size="large" imageMso="Export" onAction="ExportMenuToFile" />
           <button id="BtnMenuImport" label="メニューを読込" size="large" imageMso="Import" onAction="ImportMenuFromFile" />
         </group>
-      </tab>
+        <group id="GroupDev" label="開発支援">
+          <checkBox id="ChkAddinState" 
+                    label="インストール済みアドインを有効化" 
+                    getPressed="GetAddinState" 
+                    onAction="ToggleAddinState" />
+        </group>
+        </tab>
     </tabs>
   </ribbon>
 </customUI>

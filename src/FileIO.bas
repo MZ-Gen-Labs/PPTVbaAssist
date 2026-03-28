@@ -401,3 +401,71 @@ Sub ImportMenuFromFile(Optional control As IRibbonControl)
     ' 即座に現在のプレゼンテーションを閉じる（これによりファイルロックが解除される）
     ActivePresentation.Close
 End Sub
+
+' ==========================================
+'  チェックボックス用：アドイン有効/無効切替処理
+' ==========================================
+
+' 1. 現在のファイル名から対象となるアドイン(.ppam)の名前を取得する補助関数
+Private Function GetTargetAddinName() As String
+    Dim baseName As String
+    Dim extPos As Integer
+    Dim currentName As String
+    
+    currentName = ActivePresentation.Name
+    extPos = InStrRev(currentName, ".")
+    If extPos > 0 Then
+        baseName = Left(currentName, extPos - 1)
+    Else
+        baseName = currentName
+    End If
+    GetTargetAddinName = baseName & ".ppam"
+End Function
+
+' 2. リボン表示時に、現在の有効/無効状態を取得してチェックボックスに反映する
+Sub GetAddinState(control As IRibbonControl, ByRef returnedVal As Variant)
+    Dim targetAddIn As AddIn
+    Dim addInName As String
+    
+    addInName = GetTargetAddinName()
+    returnedVal = False ' デフォルトはオフ
+    
+    On Error Resume Next
+    Set targetAddIn = Application.AddIns(addInName)
+    If Not targetAddIn Is Nothing Then
+        ' 登録されていて、かつロードされていればTrueを返す
+        returnedVal = targetAddIn.Loaded
+    End If
+    On Error GoTo 0
+End Sub
+
+' 3. チェックボックスがクリックされたときの処理
+Sub ToggleAddinState(control As IRibbonControl, pressed As Boolean)
+    Dim targetAddIn As AddIn
+    Dim addInName As String
+    
+    addInName = GetTargetAddinName()
+    
+    On Error Resume Next
+    Set targetAddIn = Application.AddIns(addInName)
+    
+    If Not targetAddIn Is Nothing Then
+        ' チェック状態に合わせて有効/無効を切り替え
+        targetAddIn.Loaded = pressed
+        
+        If pressed Then
+            MsgBox addInName & " を有効化しました。", vbInformation
+        Else
+            MsgBox addInName & " を無効化しました（開発モード）。", vbInformation
+        End If
+    Else
+        MsgBox addInName & " がアドインとしてまだ登録されていません。" & vbCrLf & _
+               "先に「アドイン保存」とインストールを行ってください。", vbExclamation
+        
+        ' 登録されていない場合はチェックを外すためにリボンを更新
+        If Not ribbon Is Nothing Then
+            ribbon.InvalidateControl control.Id
+        End If
+    End If
+    On Error GoTo 0
+End Sub
