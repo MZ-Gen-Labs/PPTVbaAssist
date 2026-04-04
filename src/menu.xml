@@ -5,6 +5,10 @@
         <group id="GroupNote" label="コード管理">
           <button id="Btn04" label="コード → ファイル" size="large" imageMso="ExportTextFile" onAction="ExportCodeToFile" />
           <button id="Btn05" label="コード ← ファイル" size="large" imageMso="ImportTextFile" onAction="ImportCodeFromFile" />
+          <checkBox id="ChkUtf8" 
+                    label="UTF-8で入出力" 
+                    getPressed="GetUtf8State" 
+                    onAction="ToggleUtf8State" />
         </group>
         
         <group id="GroupMenu" label="メニュー管理">
